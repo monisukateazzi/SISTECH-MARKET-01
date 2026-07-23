@@ -551,11 +551,7 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
-}
-
-// ==========================================================================
-// RENDER: PRODUCT GRID + CARD
-// ==========================================================================
+}
 
 function renderProductCard(product) {
   const finalPrice = product.price * (1 - (product.discountPercentage / 100));
