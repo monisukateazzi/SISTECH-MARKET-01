@@ -701,10 +701,7 @@ function renderProductGrid() {
     </div>
   `;
 }
-
-// ==========================================================================
-// RENDER: CART DRAWER
-// ==========================================================================
+
 
 function renderCartDrawer() {
   if (!state.isCartOpen) return '';
@@ -922,11 +919,7 @@ function renderCartDrawer() {
       </div>
     </div>
   `;
-}
-
-// ==========================================================================
-// RENDER: WISHLIST DRAWER
-// ==========================================================================
+}
 
 function renderWishlistDrawer() {
   if (!state.isWishlistOpen) return '';
@@ -989,11 +982,7 @@ function renderWishlistDrawer() {
       </div>
     </div>
   `;
-}
-
-// ==========================================================================
-// RENDER: PRODUCT QUICK VIEW MODAL
-// ==========================================================================
+}
 
 function renderProductModal() {
   if (!state.selectedProduct) return '';
