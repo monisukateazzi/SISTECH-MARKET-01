@@ -1,5 +1,5 @@
 
-const API_URL = 'https://sistech-ecommerce-api.leficullen.xyz/api/v1/products';
+const API_URL = 'https://sistech-ecommerce-api.leficullen.xyz/api/products';
 
 const FALLBACK_PRODUCTS = [
   {
