@@ -313,11 +313,7 @@ function renderTopBanner() {
       </div>
     </div>
   `;
-}
-
-// ==========================================================================
-// RENDER: NAVBAR
-// ==========================================================================
+}
 
 function renderNavbar() {
   const cartCount = state.cart.reduce((s, i) => s + i.quantity, 0);
