@@ -334,7 +334,7 @@ function renderNavbar() {
         <div class="navbar__logo">
           <div class="navbar__logo-icon">S</div>
           <div>
-            <span class="navbar__logo-title">SISTECH EXPORTS</span>
+            <span class="navbar__logo-title">SISTECH MART</span>
             <span class="navbar__logo-subtitle">Indonesian Marketplace</span>
           </div>
         </div>
