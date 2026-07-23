@@ -1174,11 +1174,7 @@ function renderWithFocusPreserved() {
       }
     }
   }
-}
-
-// ==========================================================================
-// EVENT DELEGATION (single listener on #app, handles all clicks/inputs)
-// ==========================================================================
+}
 
 function initEventListeners() {
   const app = document.getElementById('app');
