@@ -1,3 +1,6 @@
+
+const API_URL = 'https://sistech-ecommerce-api.leficullen.xyz/api/v1/products';
+
 const FALLBACK_PRODUCTS = [
   {
     id: "fb-1",
@@ -105,7 +108,6 @@ function formatIDR(num) {
   return "Rp " + Number(num).toLocaleString('id-ID');
 }
 
-// Central app state (mirrors the original React useState hooks)
 const state = {
   products: [],
   categories: ["All"],
@@ -128,7 +130,7 @@ const state = {
   selectedProduct: null,
   promoCode: '',
   appliedDiscount: 0,
-  checkoutStep: 'cart', // cart, checkout, success
+  checkoutStep: 'cart',
   promoMessage: ''
 };
 
@@ -148,7 +150,7 @@ async function fetchApiProducts() {
   state.error = null;
 
   try {
-    const response = await fetch('https://sistech-ecommerce-api.leficullen.xyz/api/v1/products');
+    const response = await fetch(API_URL);
     if (!response.ok) {
       throw new Error(`API returned status ${response.status}`);
     }
@@ -171,7 +173,7 @@ async function fetchApiProducts() {
           price: Number(item.price) || 0,
           stock: Number(item.stock) || 0,
           rating: Number(item.rating) || 4.5,
-          image: item.imageUrl || item.image || `https://placehold.co/600x600/0B57D0/FFFFFF?text=${encodeURIComponent(productName)}`,
+          image: item.imageUrl || item.image || `https://placehold.co/600x600/8EB8E8/FFFFFF?text=${encodeURIComponent(productName)}`,
           discountPercentage: Number(item.discountPercentage) || 0,
           isFeatured: !!item.isFeatured,
           isNewArrival: !!item.isNewArrival,
@@ -192,14 +194,12 @@ async function fetchApiProducts() {
       loadFallbackDB();
     }
   } catch (err) {
-    console.warn("API direct link unavailable. Activating secure offline databases:", err.message);
     loadFallbackDB();
   } finally {
     state.loading = false;
     renderWithFocusPreserved();
   }
 }
-
 
 function getProcessedProducts() {
   return state.products.filter(product => {
@@ -219,14 +219,14 @@ function getProcessedProducts() {
     if (state.sortBy === 'price-desc') return b.price - a.price;
     if (state.sortBy === 'rating') return b.rating - a.rating;
     if (state.sortBy === 'discount') return b.discountPercentage - a.discountPercentage;
-    return 0; // default
+    return 0;
   });
 }
 
 function getCartTotals() {
   const cartSubtotal = state.cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const discountAmount = Math.round(cartSubtotal * (state.appliedDiscount / 100));
-  const taxAmount = Math.round((cartSubtotal - discountAmount) * 0.11); // 11% PPN Indonesia
+  const taxAmount = Math.round((cartSubtotal - discountAmount) * 0.11);
   const cartTotal = cartSubtotal - discountAmount + taxAmount;
   return { cartSubtotal, discountAmount, taxAmount, cartTotal };
 }
@@ -234,7 +234,6 @@ function getCartTotals() {
 function findProductById(id) {
   return state.products.find(p => String(p.id) === String(id));
 }
-
 
 function handleAddToCart(product, quantity = 1) {
   const existingItem = state.cart.find(item => item.id === product.id);
@@ -298,249 +297,6 @@ function completeOrder() {
   state.checkoutStep = 'cart';
   state.isCartOpen = false;
   state.appliedDiscount = 0;
-}
-
-function renderTopBanner() {
-  return `
-    <div class="bg-[#0B57D0] text-white text-xs py-2 px-6 flex justify-between items-center font-medium">
-      <div class="flex items-center space-x-2">
-        <span class="bg-white text-[#0B57D0] font-extrabold px-1.5 py-0.5 rounded text-[10px]">PROMO</span>
-        <span>Get 10% off your purchase with promo code: <strong class="underline">SISTECH10</strong></span>
-      </div>
-      <div class="hidden md:flex items-center space-x-4 text-gray-200">
-        <span>Official Store Guarantee</span>
-        <span>Free Shipping Jabodetabek</span>
-      </div>
-    </div>
-  `;
-}
-
-function renderNavbar() {
-  const cartCount = state.cart.reduce((s, i) => s + i.quantity, 0);
-
-  return `
-    <header class="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
-      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 bg-[#0B57D0] rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md">
-            S
-          </div>
-          <div>
-            <span class="font-black text-xl tracking-tight text-gray-900 block">SISTECH EXPORTS</span>
-            <span class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 block -mt-1">Indonesian Marketplace</span>
-          </div>
-        </div>
-
-        <div class="hidden md:flex flex-1 max-w-lg mx-8 relative">
-          <input
-            id="search-desktop"
-            type="text"
-            placeholder="Search premium electronics, beauty, groceries, or local delights..."
-            value="${escapeHtml(state.searchQuery)}"
-            data-action="input-search"
-            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0B57D0]/20 focus:border-[#0B57D0] text-sm transition"
-          />
-          <i data-lucide="search" class="absolute left-3.5 top-3 text-gray-400 w-4 h-4"></i>
-          ${state.searchQuery ? `
-            <button data-action="clear-search" class="absolute right-3.5 top-3 text-gray-400 hover:text-gray-600">
-              <i data-lucide="x" class="w-4 h-4"></i>
-            </button>
-          ` : ''}
-        </div>
-
-        <div class="flex items-center space-x-5">
-          <button data-action="open-wishlist" class="relative p-2.5 hover:bg-gray-50 rounded-xl text-gray-600 hover:text-red-500 transition">
-            <i data-lucide="heart" class="w-5.5 h-5.5"></i>
-            ${state.wishlist.length > 0 ? `
-              <span class="absolute -top-1 -right-1 bg-red-500 text-white font-extrabold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-bounce">
-                ${state.wishlist.length}
-              </span>
-            ` : ''}
-          </button>
-
-          <button data-action="open-cart" class="relative p-2.5 bg-[#0B57D0]/5 hover:bg-[#0B57D0]/10 text-[#0B57D0] rounded-xl font-bold flex items-center space-x-2 transition">
-            <i data-lucide="shopping-cart" class="w-5.5 h-5.5"></i>
-            <span class="text-sm hidden sm:inline">Cart</span>
-            ${state.cart.length > 0 ? `
-              <span class="bg-[#0B57D0] text-white font-black text-[10px] px-1.5 py-0.5 rounded-md">
-                ${cartCount}
-              </span>
-            ` : ''}
-          </button>
-        </div>
-      </div>
-
-      <div class="p-4 border-t border-gray-100 bg-white md:hidden block">
-        <div class="relative">
-          <input
-            id="search-mobile"
-            type="text"
-            placeholder="Search products..."
-            value="${escapeHtml(state.searchQuery)}"
-            data-action="input-search"
-            class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#0B57D0]/20"
-          />
-          <i data-lucide="search" class="absolute left-3.5 top-2.5 text-gray-400 w-4 h-4"></i>
-        </div>
-      </div>
-    </header>
-  `;
-}
-
-function renderHero() {
-  return `
-    <div class="mb-10 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl border border-white/5">
-      <div class="absolute top-0 right-0 w-96 h-96 bg-[#0B57D0]/10 rounded-full blur-3xl"></div>
-      <div class="relative z-10 max-w-xl space-y-4">
-        <div class="inline-flex items-center space-x-1 bg-white/10 px-3 py-1 rounded-full text-xs text-[#a8c7fa] font-bold">
-          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-          <span>Sistech Curated Selections</span>
-        </div>
-        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
-          Premium Indonesian High-Fidelity Products
-        </h1>
-        <p class="text-sm text-gray-300 leading-relaxed">
-          Explore officially certified brands, locally-sourced tea masterpieces, pristine skincare formulations, and top-class consumer tech from the heart of Southeast Asia.
-        </p>
-        <div class="flex space-x-4 pt-2">
-          <button data-action="select-category" data-category="Electronics" class="bg-[#0B57D0] hover:bg-[#0B57D0]/90 text-white text-xs font-bold px-5 py-3 rounded-xl shadow-lg shadow-[#0B57D0]/25 transition">
-            Shop Electronics
-          </button>
-          <button data-action="select-category" data-category="Beauty" class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-5 py-3 rounded-xl transition">
-            Explore Beauty
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderCategories() {
-  return `
-    <div class="mb-8 flex space-x-2 overflow-x-auto pb-3 scrollbar-none">
-      ${state.categories.map(cat => `
-        <button
-          data-action="select-category"
-          data-category="${escapeHtml(cat)}"
-          class="px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition ${
-            state.selectedCategory === cat
-              ? 'bg-gray-900 text-white shadow-md'
-              : 'bg-white text-gray-600 border border-gray-100 hover:bg-gray-50'
-          }"
-        >
-          ${escapeHtml(cat)}
-        </button>
-      `).join('')}
-    </div>
-  `;
-}
-
-
-function renderSidebar() {
-  return `
-    <div class="space-y-6 lg:col-span-1">
-      <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-6">
-
-        <div class="flex justify-between items-center">
-          <span class="font-extrabold text-sm tracking-tight text-gray-900 flex items-center space-x-2">
-            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
-            <span>Filters</span>
-          </span>
-          <button data-action="clear-filters" class="text-xs text-[#0B57D0] font-bold hover:underline">
-            Clear All
-          </button>
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Sort By</label>
-          <div class="relative">
-            <select id="sort-select" data-action="set-sort" class="w-full bg-gray-50 border border-gray-200 text-sm py-2 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0B57D0]/20">
-              <option value="default" ${state.sortBy === 'default' ? 'selected' : ''}>Recommendation</option>
-              <option value="price-asc" ${state.sortBy === 'price-asc' ? 'selected' : ''}>Price: Low to High</option>
-              <option value="price-desc" ${state.sortBy === 'price-desc' ? 'selected' : ''}>Price: High to Low</option>
-              <option value="rating" ${state.sortBy === 'rating' ? 'selected' : ''}>Rating: Highest First</option>
-              <option value="discount" ${state.sortBy === 'discount' ? 'selected' : ''}>Biggest Discount</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Brands</label>
-          <div class="space-y-2">
-            ${state.brands.map(br => `
-              <button
-                data-action="select-brand"
-                data-brand="${escapeHtml(br)}"
-                class="w-full text-left py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-between transition ${
-                  state.selectedBrand === br
-                    ? 'bg-[#0B57D0]/10 text-[#0B57D0] font-bold'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }"
-              >
-                <span>${escapeHtml(br)}</span>
-                ${state.selectedBrand === br ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
-              </button>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="pt-2 border-t border-gray-100">
-          <label class="flex items-center space-x-3 cursor-pointer">
-            <input
-              id="official-checkbox"
-              type="checkbox"
-              data-action="toggle-official"
-              ${state.onlyOfficial ? 'checked' : ''}
-              class="rounded text-[#0B57D0] focus:ring-[#0B57D0] w-4 h-4"
-            />
-            <span class="text-xs font-bold text-gray-700 flex items-center space-x-1">
-              <i data-lucide="shield-check" class="w-4 h-4 text-blue-600 inline"></i>
-              <span>Official Store Only</span>
-            </span>
-          </label>
-        </div>
-
-        <div class="space-y-2 pt-4 border-t border-gray-100">
-          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Condition</label>
-          <div class="grid grid-cols-3 gap-2">
-            ${['All', 'New', 'Used'].map(cond => `
-              <button
-                data-action="select-condition"
-                data-condition="${cond}"
-                class="py-1.5 px-2 text-xs font-bold rounded-lg text-center transition border ${
-                  state.selectedCondition === cond
-                    ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                }"
-              >
-                ${cond}
-              </button>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="space-y-2 pt-4 border-t border-gray-100">
-          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Max Price</label>
-          <input
-            id="max-price-range"
-            type="range"
-            min="10000"
-            max="25000000"
-            step="50000"
-            value="${state.maxPriceFilter}"
-            data-action="input-max-price"
-            class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#0B57D0]"
-          />
-          <div class="flex justify-between text-xs font-extrabold text-gray-700">
-            <span>Rp 10rb</span>
-            <span class="text-[#0B57D0]">${formatIDR(state.maxPriceFilter)}</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  `;
 }
 
 function escapeHtml(str) {
@@ -551,27 +307,239 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
-}
+}
+
+function renderTopBanner() {
+  return `
+    <div class="top-banner">
+      <div class="top-banner__promo">
+        <span class="top-banner__badge">PROMO</span>
+        <span>Get 10% off your purchase with promo code: <strong>SISTECH10</strong></span>
+      </div>
+      <div class="top-banner__info">
+        <span>Official Store Guarantee</span>
+        <span>Free Shipping Jabodetabek</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderNavbar() {
+  const cartCount = state.cart.reduce((s, i) => s + i.quantity, 0);
+
+  return `
+    <header class="navbar">
+      <div class="navbar__inner">
+
+        <div class="navbar__logo">
+          <div class="navbar__logo-icon">S</div>
+          <div>
+            <span class="navbar__logo-title">SISTECH EXPORTS</span>
+            <span class="navbar__logo-subtitle">Indonesian Marketplace</span>
+          </div>
+        </div>
+
+        <div class="navbar__search">
+          <input
+            id="search-desktop"
+            type="text"
+            placeholder="Search premium electronics, beauty, groceries, or local delights..."
+            value="${escapeHtml(state.searchQuery)}"
+            data-action="input-search"
+            class="navbar__search-input"
+          />
+          <i data-lucide="search" class="icon navbar__search-icon"></i>
+          ${state.searchQuery ? `
+            <button data-action="clear-search" class="navbar__search-clear">
+              <i data-lucide="x" class="icon" style="width:16px;height:16px;"></i>
+            </button>
+          ` : ''}
+        </div>
+
+        <div class="navbar__actions">
+          <button data-action="open-wishlist" class="navbar__icon-btn">
+            <i data-lucide="heart" class="icon" style="width:22px;height:22px;"></i>
+            ${state.wishlist.length > 0 ? `<span class="navbar__badge">${state.wishlist.length}</span>` : ''}
+          </button>
+
+          <button data-action="open-cart" class="navbar__cart-btn">
+            <i data-lucide="shopping-cart" class="icon" style="width:22px;height:22px;"></i>
+            <span class="navbar__cart-label">Cart</span>
+            ${state.cart.length > 0 ? `<span class="navbar__cart-badge">${cartCount}</span>` : ''}
+          </button>
+        </div>
+      </div>
+
+      <div class="navbar__mobile-search">
+        <div class="navbar__mobile-search-wrap">
+          <input
+            id="search-mobile"
+            type="text"
+            placeholder="Search products..."
+            value="${escapeHtml(state.searchQuery)}"
+            data-action="input-search"
+            class="navbar__mobile-search-input"
+          />
+          <i data-lucide="search" class="icon navbar__mobile-search-icon"></i>
+        </div>
+      </div>
+    </header>
+  `;
+}
+
+function renderHero() {
+  return `
+    <div class="hero">
+      <div class="hero__glow"></div>
+      <div class="hero__content">
+        <div class="hero__tag">
+          <i data-lucide="sparkles" class="icon" style="width:14px;height:14px;"></i>
+          <span>Sistech Curated Selections</span>
+        </div>
+        <h1 class="hero__title">Premium Indonesian High-Fidelity Products</h1>
+        <p class="hero__desc">
+          Explore officially certified brands, locally-sourced tea masterpieces, pristine skincare formulations, and top-class consumer tech from the heart of Southeast Asia.
+        </p>
+        <div class="hero__actions">
+          <button data-action="select-category" data-category="Electronics" class="btn btn-primary">
+            Shop Electronics
+          </button>
+          <button data-action="select-category" data-category="Beauty" class="btn btn-ghost-light">
+            Explore Beauty
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCategories() {
+  return `
+    <div class="category-bar">
+      ${state.categories.map(cat => `
+        <button
+          data-action="select-category"
+          data-category="${escapeHtml(cat)}"
+          class="category-pill ${state.selectedCategory === cat ? 'category-pill--active' : ''}"
+        >
+          ${escapeHtml(cat)}
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderSidebar() {
+  return `
+    <div class="sidebar">
+      <div class="filter-card">
+
+        <div class="filter-card__header">
+          <span class="filter-card__title">
+            <i data-lucide="sliders-horizontal" class="icon" style="width:16px;height:16px;"></i>
+            <span>Filters</span>
+          </span>
+          <button data-action="clear-filters" class="filter-clear-btn">Clear All</button>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Sort By</label>
+          <select id="sort-select" data-action="set-sort" class="sort-select">
+            <option value="default" ${state.sortBy === 'default' ? 'selected' : ''}>Recommendation</option>
+            <option value="price-asc" ${state.sortBy === 'price-asc' ? 'selected' : ''}>Price: Low to High</option>
+            <option value="price-desc" ${state.sortBy === 'price-desc' ? 'selected' : ''}>Price: High to Low</option>
+            <option value="rating" ${state.sortBy === 'rating' ? 'selected' : ''}>Rating: Highest First</option>
+            <option value="discount" ${state.sortBy === 'discount' ? 'selected' : ''}>Biggest Discount</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Brands</label>
+          <div class="brand-list">
+            ${state.brands.map(br => `
+              <button
+                data-action="select-brand"
+                data-brand="${escapeHtml(br)}"
+                class="brand-item ${state.selectedBrand === br ? 'brand-item--active' : ''}"
+              >
+                <span>${escapeHtml(br)}</span>
+                ${state.selectedBrand === br ? '<i data-lucide="check" class="icon" style="width:14px;height:14px;"></i>' : ''}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="official-toggle">
+          <label>
+            <input
+              id="official-checkbox"
+              type="checkbox"
+              data-action="toggle-official"
+              ${state.onlyOfficial ? 'checked' : ''}
+            />
+            <span class="official-toggle__label">
+              <i data-lucide="shield-check" class="icon" style="width:16px;height:16px;color:var(--color-primary-text);"></i>
+              <span>Official Store Only</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="filter-group filter-group--bordered">
+          <label class="filter-label">Condition</label>
+          <div class="condition-grid">
+            ${['All', 'New', 'Used'].map(cond => `
+              <button
+                data-action="select-condition"
+                data-condition="${cond}"
+                class="condition-btn ${state.selectedCondition === cond ? 'condition-btn--active' : ''}"
+              >
+                ${cond}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="filter-group filter-group--bordered price-range">
+          <label class="filter-label">Max Price</label>
+          <input
+            id="max-price-range"
+            type="range"
+            min="10000"
+            max="25000000"
+            step="50000"
+            value="${state.maxPriceFilter}"
+            data-action="input-max-price"
+          />
+          <div class="price-range__row">
+            <span>Rp 10rb</span>
+            <span class="price-range__value">${formatIDR(state.maxPriceFilter)}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+}
 
 function renderProductCard(product) {
   const finalPrice = product.price * (1 - (product.discountPercentage / 100));
   const isWishlisted = state.wishlist.some(item => item.id === product.id);
 
   return `
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group overflow-hidden">
-      <div class="relative bg-gray-50 h-52 flex items-center justify-center overflow-hidden">
-        <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300" />
+    <div class="product-card">
+      <div class="product-card__image-wrap">
+        <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="product-card__image" />
 
-        <div class="absolute top-3 left-3 flex flex-col space-y-1">
+        <div class="product-card__tags">
           ${product.isOfficialStore ? `
-            <span class="bg-blue-600 text-white font-extrabold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center space-x-1 shadow">
-              <i data-lucide="shield-check" class="w-3 h-3"></i>
+            <span class="tag-official">
+              <i data-lucide="shield-check" class="icon" style="width:12px;height:12px;"></i>
               <span>OFFICIAL</span>
             </span>
           ` : ''}
           ${product.discountPercentage > 0 ? `
-            <span class="bg-red-500 text-white font-black text-[10px] px-2 py-0.5 rounded-md self-start shadow flex items-center space-x-0.5">
-              <i data-lucide="percent" class="w-2.5 h-2.5 inline"></i>
+            <span class="tag-discount">
+              <i data-lucide="percent" class="icon" style="width:10px;height:10px;"></i>
               <span>${product.discountPercentage}% OFF</span>
             </span>
           ` : ''}
@@ -580,60 +548,52 @@ function renderProductCard(product) {
         <button
           data-action="toggle-wishlist"
           data-id="${product.id}"
-          class="absolute top-3 right-3 p-2 rounded-full border shadow transition ${
-            isWishlisted ? 'bg-red-50 border-red-200 text-red-500' : 'bg-white border-gray-100 text-gray-400 hover:text-red-500'
-          }"
+          class="wishlist-btn ${isWishlisted ? 'wishlist-btn--active' : ''}"
         >
-          <i data-lucide="heart" class="w-4 h-4 fill-current"></i>
+          <i data-lucide="heart" class="icon" style="width:16px;height:16px;"></i>
         </button>
       </div>
 
-      <div class="p-4 flex-1 flex flex-col space-y-2">
+      <div class="product-card__body">
 
-        <div class="flex items-center justify-between text-[11px] text-gray-400 font-semibold">
-          <span class="flex items-center space-x-1">
-            <i data-lucide="store" class="w-3.5 h-3.5 text-gray-400"></i>
-            <span class="truncate max-w-[120px]">${escapeHtml(product.store)}</span>
+        <div class="product-card__meta">
+          <span class="product-card__store">
+            <i data-lucide="store" class="icon" style="width:14px;height:14px;"></i>
+            <span>${escapeHtml(product.store)}</span>
           </span>
-          <span class="flex items-center space-x-0.5">
-            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-400"></i>
+          <span class="product-card__city">
+            <i data-lucide="map-pin" class="icon" style="width:14px;height:14px;"></i>
             <span>${escapeHtml(product.storeCity)}</span>
           </span>
         </div>
 
-        <h4 class="font-bold text-sm text-gray-800 line-clamp-2 hover:text-[#0B57D0] transition">
-          <button data-action="quick-view" data-id="${product.id}" class="text-left font-bold">
-            ${escapeHtml(product.name)}
-          </button>
+        <h4 class="product-card__title">
+          <button data-action="quick-view" data-id="${product.id}">${escapeHtml(product.name)}</button>
         </h4>
 
-        <div class="flex items-center space-x-1.5">
-          <div class="flex items-center text-amber-500">
-            <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
-          </div>
-          <span class="text-xs font-bold text-gray-700">${product.rating}</span>
-          <span class="text-gray-300 text-xs">|</span>
-          <span class="text-[10px] text-gray-400 font-semibold uppercase">${escapeHtml(product.category)}</span>
+        <div class="product-card__rating">
+          <i data-lucide="star" class="icon product-card__rating-icon" style="width:14px;height:14px;"></i>
+          <span class="product-card__rating-value">${product.rating}</span>
+          <span class="product-card__divider">|</span>
+          <span class="product-card__category">${escapeHtml(product.category)}</span>
         </div>
 
-        <div class="pt-2 flex-1 flex flex-col justify-end">
-          <div class="flex items-baseline space-x-1.5">
-            <span class="text-base font-black text-gray-900">${formatIDR(finalPrice)}</span>
-            ${product.discountPercentage > 0 ? `<span class="text-xs text-gray-400 line-through">${formatIDR(product.price)}</span>` : ''}
+        <div class="product-card__price-block">
+          <div class="product-card__price-row">
+            <span class="product-card__price">${formatIDR(finalPrice)}</span>
+            ${product.discountPercentage > 0 ? `<span class="product-card__price-old">${formatIDR(product.price)}</span>` : ''}
           </div>
-          <span class="text-[10px] text-gray-400 font-semibold block mt-0.5">
-            Stock: ${product.stock} units left
-          </span>
+          <span class="product-card__stock">Stock: ${product.stock} units left</span>
         </div>
 
       </div>
 
-      <div class="p-4 pt-0 grid grid-cols-4 gap-2">
-        <button data-action="quick-view" data-id="${product.id}" title="Quick View" class="col-span-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl flex items-center justify-center py-2 transition">
-          <i data-lucide="eye" class="w-4 h-4"></i>
+      <div class="product-card__actions">
+        <button data-action="quick-view" data-id="${product.id}" title="Quick View" class="quick-view-btn">
+          <i data-lucide="eye" class="icon" style="width:16px;height:16px;"></i>
         </button>
-        <button data-action="add-to-cart" data-id="${product.id}" class="col-span-3 bg-[#0B57D0] hover:bg-blue-700 text-white font-bold text-xs py-2 rounded-xl flex items-center justify-center space-x-1 transition shadow-lg shadow-[#0B57D0]/10">
-          <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
+        <button data-action="add-to-cart" data-id="${product.id}" class="add-cart-btn">
+          <i data-lucide="shopping-cart" class="icon" style="width:14px;height:14px;"></i>
           <span>Add to Cart</span>
         </button>
       </div>
@@ -649,50 +609,48 @@ function renderProductGrid() {
 
   if (state.loading) {
     bodyHtml = `
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div class="skeleton-grid">
         ${[1, 2, 3, 4, 5, 6].map(() => `
-          <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-4 animate-pulse">
-            <div class="w-full h-48 bg-gray-200 rounded-xl"></div>
-            <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-            <div class="h-10 bg-gray-200 rounded-xl w-full"></div>
+          <div class="skeleton-card">
+            <div class="skeleton-block" style="width:100%;height:192px;"></div>
+            <div class="skeleton-block" style="height:16px;width:66%;"></div>
+            <div class="skeleton-block" style="height:16px;width:50%;"></div>
+            <div class="skeleton-block" style="height:40px;width:100%;"></div>
           </div>
         `).join('')}
       </div>
     `;
   } else if (processedProducts.length === 0) {
     bodyHtml = `
-      <div class="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm max-w-xl mx-auto space-y-4">
-        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-gray-400">
-          <i data-lucide="search" class="w-8 h-8"></i>
+      <div class="empty-state">
+        <div class="empty-state__icon">
+          <i data-lucide="search" class="icon" style="width:32px;height:32px;"></i>
         </div>
-        <h3 class="font-extrabold text-lg text-gray-900">No products found</h3>
-        <p class="text-xs text-gray-400 leading-relaxed max-w-sm mx-auto">
+        <h3 class="empty-state__title">No products found</h3>
+        <p class="empty-state__desc">
           We couldn't find any products matching your specific filters or search keywords. Try adjusting your query or resetting your sidebar options.
         </p>
-        <button data-action="reset-filters" class="bg-gray-950 text-white text-xs font-bold px-5 py-2.5 rounded-xl hover:bg-gray-800 transition">
-          Reset All Filters
-        </button>
+        <button data-action="reset-filters" class="btn-dark">Reset All Filters</button>
       </div>
     `;
   } else {
     bodyHtml = `
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div class="product-grid">
         ${processedProducts.map(renderProductCard).join('')}
       </div>
     `;
   }
 
   return `
-    <div class="lg:col-span-3 space-y-6">
+    <div class="product-section">
 
-      <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-        <span class="text-xs text-gray-500 font-semibold">
-          Showing <strong class="text-gray-900 font-extrabold">${processedProducts.length}</strong> premium items
+      <div class="product-header">
+        <span class="product-header__count">
+          Showing <strong>${processedProducts.length}</strong> premium items
         </span>
-        <div class="flex items-center space-x-2 text-xs">
-          <span class="text-gray-400 font-bold">Category:</span>
-          <span class="bg-gray-100 text-gray-800 font-extrabold px-2 py-0.5 rounded-md">${escapeHtml(state.selectedCategory)}</span>
+        <div class="product-header__category">
+          <span class="product-header__category-label">Category:</span>
+          <span class="category-badge">${escapeHtml(state.selectedCategory)}</span>
         </div>
       </div>
 
@@ -701,7 +659,6 @@ function renderProductGrid() {
     </div>
   `;
 }
-
 
 function renderCartDrawer() {
   if (!state.isCartOpen) return '';
@@ -712,102 +669,91 @@ function renderCartDrawer() {
 
   if (state.cart.length === 0) {
     bodyHtml = `
-      <div class="h-full flex flex-col items-center justify-center text-center space-y-4">
-        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-[#0B57D0]">
-          <i data-lucide="shopping-bag" class="w-8 h-8"></i>
+      <div class="empty-panel">
+        <div class="empty-panel__icon empty-panel__icon--blue">
+          <i data-lucide="shopping-bag" class="icon" style="width:32px;height:32px;"></i>
         </div>
         <div>
-          <h4 class="font-bold text-gray-900">Your cart is empty</h4>
-          <p class="text-xs text-gray-400 max-w-xs mx-auto mt-1 leading-relaxed">
+          <h4 class="empty-panel__title">Your cart is empty</h4>
+          <p class="empty-panel__desc">
             You haven't added any products to your shipping container yet. Explore the marketplace to find high-quality products.
           </p>
         </div>
-        <button data-action="close-cart" class="bg-[#0B57D0] text-white font-bold text-xs px-6 py-2.5 rounded-xl transition shadow-lg shadow-[#0B57D0]/20">
-          Start Shopping
-        </button>
+        <button data-action="close-cart" class="btn btn-primary">Start Shopping</button>
       </div>
     `;
   } else if (state.checkoutStep === 'cart') {
-    bodyHtml = `
-      <div class="space-y-4">
-        ${state.cart.map(item => {
-          const discounted = item.price * (1 - (item.discountPercentage / 100));
-          return `
-            <div class="flex items-start space-x-4 p-3 border border-gray-100 rounded-xl bg-gray-50">
-              <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="w-16 h-16 rounded-lg object-cover bg-white" />
-              <div class="flex-1 space-y-1">
-                <h4 class="font-bold text-xs text-gray-800 line-clamp-1">${escapeHtml(item.name)}</h4>
-                <span class="text-[10px] text-gray-400 block font-semibold">${escapeHtml(item.store)}</span>
-                <div class="flex items-baseline space-x-1 text-xs">
-                  <span class="font-extrabold text-gray-900">${formatIDR(discounted)}</span>
-                  ${item.discountPercentage > 0 ? `<span class="text-[10px] text-gray-400 line-through">${formatIDR(item.price)}</span>` : ''}
-                </div>
-              </div>
-              <div class="flex flex-col items-end justify-between h-16">
-                <button data-action="remove-item" data-id="${item.id}" class="text-gray-400 hover:text-gray-600">
-                  <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                </button>
-                <div class="flex items-center space-x-2 bg-white rounded-lg border border-gray-100 px-1 py-0.5">
-                  <button data-action="update-qty" data-id="${item.id}" data-change="-1" class="p-0.5 text-gray-500 hover:bg-gray-100 rounded">
-                    <i data-lucide="minus" class="w-3 h-3"></i>
-                  </button>
-                  <span class="text-xs font-bold w-4 text-center">${item.quantity}</span>
-                  <button data-action="update-qty" data-id="${item.id}" data-change="1" class="p-0.5 text-gray-500 hover:bg-gray-100 rounded">
-                    <i data-lucide="plus" class="w-3 h-3"></i>
-                  </button>
-                </div>
-              </div>
+    bodyHtml = state.cart.map(item => {
+      const discounted = item.price * (1 - (item.discountPercentage / 100));
+      return `
+        <div class="cart-item">
+          <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="cart-item__image" />
+          <div class="cart-item__info">
+            <h4 class="cart-item__name">${escapeHtml(item.name)}</h4>
+            <span class="cart-item__store">${escapeHtml(item.store)}</span>
+            <div class="cart-item__price-row">
+              <span class="cart-item__price">${formatIDR(discounted)}</span>
+              ${item.discountPercentage > 0 ? `<span class="cart-item__price-old">${formatIDR(item.price)}</span>` : ''}
             </div>
-          `;
-        }).join('')}
-      </div>
-    `;
+          </div>
+          <div class="cart-item__controls">
+            <button data-action="remove-item" data-id="${item.id}" class="cart-item__remove">
+              <i data-lucide="x" class="icon" style="width:14px;height:14px;"></i>
+            </button>
+            <div class="qty-control">
+              <button data-action="update-qty" data-id="${item.id}" data-change="-1">
+                <i data-lucide="minus" class="icon" style="width:12px;height:12px;"></i>
+              </button>
+              <span>${item.quantity}</span>
+              <button data-action="update-qty" data-id="${item.id}" data-change="1">
+                <i data-lucide="plus" class="icon" style="width:12px;height:12px;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
   } else if (state.checkoutStep === 'checkout') {
     bodyHtml = `
-      <div class="space-y-4">
-        <h4 class="font-extrabold text-xs text-gray-400 uppercase tracking-wider">Shipping Destination</h4>
-        <div class="space-y-3">
-          <div>
-            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Full Name</label>
-            <input type="text" placeholder="John Doe" class="w-full bg-gray-50 border border-gray-200 text-xs py-2.5 px-3 rounded-lg focus:outline-none" required />
-          </div>
-          <div>
-            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Phone Number</label>
-            <input type="tel" placeholder="+62 812-3456-7890" class="w-full bg-gray-50 border border-gray-200 text-xs py-2.5 px-3 rounded-lg focus:outline-none" required />
-          </div>
-          <div>
-            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Full Delivery Address</label>
-            <textarea rows="3" placeholder="Sudirman Boulevard No 41, Kuningan, Jakarta Selatan" class="w-full bg-gray-50 border border-gray-200 text-xs py-2 px-3 rounded-lg focus:outline-none" required></textarea>
-          </div>
+      <div class="checkout-form">
+        <h4 class="checkout-form__title">Shipping Destination</h4>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" placeholder="John Doe" required />
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" placeholder="+62 812-3456-7890" required />
+        </div>
+        <div class="form-group">
+          <label>Full Delivery Address</label>
+          <textarea rows="3" placeholder="Sudirman Boulevard No 41, Kuningan, Jakarta Selatan" required></textarea>
         </div>
       </div>
     `;
   } else {
-    // success
     bodyHtml = `
-      <div class="h-full flex flex-col items-center justify-center text-center space-y-4">
-        <div class="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500">
-          <i data-lucide="check-circle" class="w-10 h-10"></i>
+      <div class="success-panel">
+        <div class="success-panel__icon">
+          <i data-lucide="check-circle" class="icon" style="width:40px;height:40px;"></i>
         </div>
         <div>
-          <h4 class="font-extrabold text-gray-900">Purchase Simulating Success</h4>
-          <p class="text-xs text-gray-400 max-w-xs mx-auto mt-2 leading-relaxed">
+          <h4 class="success-panel__title">Purchase Simulating Success</h4>
+          <p class="success-panel__desc">
             Thank you for purchasing premium products on the Sistech Marketplace. A live shipment coordinate has been assigned to Jabodetabek hubs.
           </p>
         </div>
-        <div class="bg-gray-50 p-4 rounded-xl border border-dashed border-gray-200 w-full text-left space-y-1">
-          <div class="flex justify-between text-xs">
-            <span class="text-gray-400">Order ID:</span>
-            <span class="font-mono font-bold text-gray-800">SST-${Math.floor(100000 + Math.random() * 900000)}</span>
+        <div class="order-info">
+          <div class="order-info__row">
+            <span class="order-info__label">Order ID:</span>
+            <span class="order-info__value">SST-${Math.floor(100000 + Math.random() * 900000)}</span>
           </div>
-          <div class="flex justify-between text-xs">
-            <span class="text-gray-400">Status:</span>
-            <span class="text-emerald-600 font-bold">On Process</span>
+          <div class="order-info__row">
+            <span class="order-info__label">Status:</span>
+            <span class="order-info__status">On Process</span>
           </div>
         </div>
-        <button data-action="complete-order" class="bg-gray-900 text-white text-xs font-bold w-full py-3 rounded-xl hover:bg-gray-800 transition">
-          Return to Marketplace
-        </button>
+        <button data-action="complete-order" class="btn-dark btn-block">Return to Marketplace</button>
       </div>
     `;
   }
@@ -815,66 +761,60 @@ function renderCartDrawer() {
   const showFooter = state.cart.length > 0 && state.checkoutStep !== 'success';
 
   const footerHtml = showFooter ? `
-    <div class="p-6 border-t border-gray-100 bg-gray-50 space-y-4">
+    <div class="drawer__footer">
 
       ${state.checkoutStep === 'cart' ? `
-        <div class="space-y-1.5">
-          <div class="flex space-x-2">
+        <div class="promo-row">
+          <div class="promo-row__inputs">
             <input
               id="promo-code-input"
               type="text"
               placeholder="Promo Code (SISTECH10)"
               value="${escapeHtml(state.promoCode)}"
               data-action="input-promo"
-              class="flex-1 pl-3 py-2 border border-gray-200 rounded-lg text-xs uppercase focus:outline-none bg-white"
+              class="promo-input"
             />
-            <button data-action="apply-promo" class="bg-gray-900 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-gray-800 transition">
-              Apply
-            </button>
+            <button data-action="apply-promo" class="promo-btn">Apply</button>
           </div>
           ${state.promoMessage ? `
-            <p class="text-[10px] font-bold ${state.appliedDiscount > 0 ? 'text-emerald-600' : 'text-red-500'}">
+            <p class="promo-message ${state.appliedDiscount > 0 ? 'promo-message--ok' : 'promo-message--error'}">
               ${escapeHtml(state.promoMessage)}
             </p>
           ` : ''}
         </div>
       ` : ''}
 
-      <div class="space-y-1.5 text-xs text-gray-500">
-        <div class="flex justify-between">
+      <div class="summary">
+        <div class="summary-row">
           <span>Subtotal</span>
-          <span class="font-semibold text-gray-800">${formatIDR(cartSubtotal)}</span>
+          <strong>${formatIDR(cartSubtotal)}</strong>
         </div>
         ${state.appliedDiscount > 0 ? `
-          <div class="flex justify-between text-emerald-600 font-bold">
+          <div class="summary-row summary-row--discount">
             <span>Discount (${state.appliedDiscount}%)</span>
             <span>-${formatIDR(discountAmount)}</span>
           </div>
         ` : ''}
-        <div class="flex justify-between">
+        <div class="summary-row">
           <span>PPN (11%)</span>
-          <span class="font-semibold text-gray-800">${formatIDR(taxAmount)}</span>
+          <strong>${formatIDR(taxAmount)}</strong>
         </div>
-        <div class="flex justify-between text-sm font-black text-gray-900 pt-2 border-t border-gray-200">
+        <div class="summary-total">
           <span>Total Amount</span>
-          <span class="text-[#0B57D0]">${formatIDR(cartTotal)}</span>
+          <span class="summary-total__value">${formatIDR(cartTotal)}</span>
         </div>
       </div>
 
-      <div class="pt-2">
+      <div class="action-row">
         ${state.checkoutStep === 'cart' ? `
-          <button data-action="checkout-step" data-step="checkout" class="w-full bg-[#0B57D0] hover:bg-blue-700 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center space-x-2 transition shadow-lg shadow-[#0B57D0]/20">
+          <button data-action="checkout-step" data-step="checkout" class="btn-primary-full">
             <span>Proceed to Shipping</span>
-            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            <i data-lucide="chevron-right" class="icon" style="width:16px;height:16px;"></i>
           </button>
         ` : `
-          <div class="flex space-x-2">
-            <button data-action="checkout-step" data-step="cart" class="flex-1 bg-white border border-gray-200 text-gray-700 font-bold text-xs py-3 rounded-xl hover:bg-gray-50 transition">
-              Back to Items
-            </button>
-            <button data-action="checkout-step" data-step="success" class="flex-1 bg-[#0B57D0] hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl transition">
-              Place Order Simulation
-            </button>
+          <div class="action-row-split">
+            <button data-action="checkout-step" data-step="cart" class="btn-outline">Back to Items</button>
+            <button data-action="checkout-step" data-step="success" class="btn-primary-flex">Place Order Simulation</button>
           </div>
         `}
       </div>
@@ -883,34 +823,33 @@ function renderCartDrawer() {
   ` : '';
 
   const stepperHtml = state.cart.length > 0 ? `
-    <div class="px-6 py-3 bg-gray-50 border-b border-gray-100 flex justify-between text-xs font-bold text-gray-500">
-      <span class="${state.checkoutStep === 'cart' ? 'text-[#0B57D0]' : ''}">1. Review Items</span>
-      <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
-      <span class="${state.checkoutStep === 'checkout' ? 'text-[#0B57D0]' : ''}">2. Checkout Details</span>
-      <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
-      <span class="${state.checkoutStep === 'success' ? 'text-[#0B57D0]' : ''}">3. Order Complete</span>
+    <div class="drawer__stepper">
+      <span class="${state.checkoutStep === 'cart' ? 'drawer__step--active' : ''}">1. Review Items</span>
+      <i data-lucide="chevron-right" class="icon" style="width:14px;height:14px;color:var(--gray-300);"></i>
+      <span class="${state.checkoutStep === 'checkout' ? 'drawer__step--active' : ''}">2. Checkout Details</span>
+      <i data-lucide="chevron-right" class="icon" style="width:14px;height:14px;color:var(--gray-300);"></i>
+      <span class="${state.checkoutStep === 'success' ? 'drawer__step--active' : ''}">3. Order Complete</span>
     </div>
   ` : '';
 
   return `
-    <div class="fixed inset-0 z-50 overflow-hidden" aria-modal="true" role="dialog">
-      <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" data-action="close-cart"></div>
+    <div class="drawer-overlay">
+      <div class="drawer-backdrop" data-action="close-cart"></div>
+      <div class="drawer">
 
-      <div class="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl flex flex-col">
-
-        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <i data-lucide="shopping-cart" class="w-6 h-6 text-[#0B57D0]"></i>
-            <h3 class="font-extrabold text-lg text-gray-900">Your Cart</h3>
+        <div class="drawer__header">
+          <div class="drawer__header-title">
+            <i data-lucide="shopping-cart" class="icon" style="width:24px;height:24px;color:var(--color-primary-text);"></i>
+            <h3 class="drawer__title">Your Cart</h3>
           </div>
-          <button data-action="close-cart" class="p-1 rounded-lg text-gray-400 hover:bg-gray-100 transition">
-            <i data-lucide="x" class="w-5 h-5"></i>
+          <button data-action="close-cart" class="drawer__close">
+            <i data-lucide="x" class="icon" style="width:20px;height:20px;"></i>
           </button>
         </div>
 
         ${stepperHtml}
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-4">
+        <div class="drawer__body">
           ${bodyHtml}
         </div>
 
@@ -919,158 +858,132 @@ function renderCartDrawer() {
       </div>
     </div>
   `;
-}
+}
 
 function renderWishlistDrawer() {
   if (!state.isWishlistOpen) return '';
 
   const bodyHtml = state.wishlist.length === 0 ? `
-    <div class="h-full flex flex-col items-center justify-center text-center space-y-4">
-      <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500">
-        <i data-lucide="heart" class="w-8 h-8"></i>
+    <div class="empty-panel">
+      <div class="empty-panel__icon empty-panel__icon--pink">
+        <i data-lucide="heart" class="icon" style="width:32px;height:32px;"></i>
       </div>
       <div>
-        <h4 class="font-bold text-gray-900">Your wishlist is empty</h4>
-        <p class="text-xs text-gray-400 max-w-xs mx-auto mt-1 leading-relaxed">
-          Save premium products to your personal favorites container.
-        </p>
+        <h4 class="empty-panel__title">Your wishlist is empty</h4>
+        <p class="empty-panel__desc">Save premium products to your personal favorites container.</p>
       </div>
     </div>
-  ` : `
-    <div class="space-y-4">
-      ${state.wishlist.map(item => `
-        <div class="flex items-center space-x-4 p-3 border border-gray-100 rounded-xl bg-gray-50">
-          <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="w-16 h-16 rounded-lg object-cover bg-white" />
-          <div class="flex-1 space-y-0.5">
-            <h4 class="font-bold text-xs text-gray-800 line-clamp-1">${escapeHtml(item.name)}</h4>
-            <span class="text-[10px] text-gray-400 block font-semibold">${escapeHtml(item.store)}</span>
-            <span class="font-extrabold text-xs text-gray-900 block">${formatIDR(item.price)}</span>
-          </div>
-          <div class="flex flex-col space-y-2">
-            <button data-action="wishlist-to-cart" data-id="${item.id}" class="bg-[#0B57D0] hover:bg-blue-700 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-lg transition">
-              To Cart
-            </button>
-            <button data-action="toggle-wishlist" data-id="${item.id}" class="text-[10px] font-bold text-gray-400 hover:text-red-500 transition text-center">
-              Remove
-            </button>
-          </div>
-        </div>
-      `).join('')}
+  ` : state.wishlist.map(item => `
+    <div class="wishlist-item">
+      <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="wishlist-item__image" />
+      <div class="wishlist-item__info">
+        <h4 class="wishlist-item__name">${escapeHtml(item.name)}</h4>
+        <span class="wishlist-item__store">${escapeHtml(item.store)}</span>
+        <span class="wishlist-item__price">${formatIDR(item.price)}</span>
+      </div>
+      <div class="wishlist-item__actions">
+        <button data-action="wishlist-to-cart" data-id="${item.id}" class="wishlist-item__to-cart">To Cart</button>
+        <button data-action="toggle-wishlist" data-id="${item.id}" class="wishlist-item__remove">Remove</button>
+      </div>
     </div>
-  `;
+  `).join('');
 
   return `
-    <div class="fixed inset-0 z-50 overflow-hidden" aria-modal="true" role="dialog">
-      <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" data-action="close-wishlist"></div>
+    <div class="drawer-overlay">
+      <div class="drawer-backdrop" data-action="close-wishlist"></div>
+      <div class="drawer">
 
-      <div class="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl flex flex-col">
-
-        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-          <div class="flex items-center space-x-2 text-red-500">
-            <i data-lucide="heart" class="w-6 h-6 fill-current"></i>
-            <h3 class="font-extrabold text-lg text-gray-900">Your Wishlist</h3>
+        <div class="drawer__header">
+          <div class="drawer__header-title drawer__header-title--pink">
+            <i data-lucide="heart" class="icon" style="width:24px;height:24px;"></i>
+            <h3 class="drawer__title">Your Wishlist</h3>
           </div>
-          <button data-action="close-wishlist" class="p-1 rounded-lg text-gray-400 hover:bg-gray-100 transition">
-            <i data-lucide="x" class="w-5 h-5"></i>
+          <button data-action="close-wishlist" class="drawer__close">
+            <i data-lucide="x" class="icon" style="width:20px;height:20px;"></i>
           </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-4">
+        <div class="drawer__body">
           ${bodyHtml}
         </div>
 
       </div>
     </div>
   `;
-}
+}
 
 function renderProductModal() {
   if (!state.selectedProduct) return '';
   const product = state.selectedProduct;
 
   return `
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
-      <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" data-action="close-modal"></div>
+    <div class="modal-overlay">
+      <div class="drawer-backdrop" data-action="close-modal"></div>
+      <div class="modal-center">
+        <div class="modal">
 
-      <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 md:p-8 relative shadow-2xl overflow-hidden border border-gray-100 flex flex-col md:flex-row gap-6">
-
-          <button data-action="close-modal" class="absolute top-4 right-4 p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-full transition">
-            <i data-lucide="x" class="w-4 h-4"></i>
+          <button data-action="close-modal" class="modal__close">
+            <i data-lucide="x" class="icon" style="width:16px;height:16px;"></i>
           </button>
 
-          <div class="md:w-1/2 bg-gray-50 rounded-2xl flex items-center justify-center overflow-hidden h-64 md:h-auto">
-            <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="object-cover w-full h-full" />
+          <div class="modal__image-wrap">
+            <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="modal__image" />
           </div>
 
-          <div class="md:w-1/2 flex flex-col justify-between space-y-4">
+          <div class="modal__info">
 
-            <div class="space-y-2">
+            <div class="modal__top">
 
-              <div class="flex flex-wrap items-center gap-1.5">
-                <span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-                  ${escapeHtml(product.category)}
-                </span>
+              <div class="modal__badges">
+                <span class="badge-category">${escapeHtml(product.category)}</span>
                 ${product.isOfficialStore ? `
-                  <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase flex items-center space-x-1">
-                    <i data-lucide="shield-check" class="w-3 h-3 text-blue-600 inline"></i>
+                  <span class="badge-official">
+                    <i data-lucide="shield-check" class="icon" style="width:12px;height:12px;"></i>
                     <span>Official Store</span>
                   </span>
                 ` : ''}
               </div>
 
-              <h3 class="font-extrabold text-xl text-gray-900 leading-tight">
-                ${escapeHtml(product.name)}
-              </h3>
+              <h3 class="modal__title">${escapeHtml(product.name)}</h3>
 
-              <div class="flex items-center space-x-2">
-                <div class="flex items-center text-amber-500">
-                  <i data-lucide="star" class="w-4 h-4 fill-current"></i>
-                  <span class="text-xs font-bold text-gray-700 ml-1">${product.rating}</span>
+              <div class="modal__rating">
+                <div class="modal__rating-stars">
+                  <i data-lucide="star" class="icon" style="width:16px;height:16px;"></i>
+                  <span class="modal__rating-value">${product.rating}</span>
                 </div>
-                <span class="text-gray-300">|</span>
-                <span class="text-xs text-gray-400 font-semibold">${escapeHtml(product.condition)} Condition</span>
+                <span class="modal__divider">|</span>
+                <span class="modal__condition">${escapeHtml(product.condition)} Condition</span>
               </div>
 
-              <div class="space-y-0.5">
-                <div class="flex items-baseline space-x-2">
-                  <span class="text-2xl font-black text-[#0B57D0]">
-                    ${formatIDR(product.price * (1 - (product.discountPercentage / 100)))}
-                  </span>
-                  ${product.discountPercentage > 0 ? `<span class="text-sm text-gray-400 line-through">${formatIDR(product.price)}</span>` : ''}
-                </div>
+              <div class="modal__price-row">
+                <span class="modal__price">${formatIDR(product.price * (1 - (product.discountPercentage / 100)))}</span>
+                ${product.discountPercentage > 0 ? `<span class="modal__price-old">${formatIDR(product.price)}</span>` : ''}
               </div>
 
-              <p class="text-xs text-gray-500 leading-relaxed max-h-24 overflow-y-auto">
-                ${escapeHtml(product.description)}
-              </p>
+              <p class="modal__desc">${escapeHtml(product.description)}</p>
 
             </div>
 
-            <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs flex items-center justify-between">
-              <div class="space-y-0.5">
-                <span class="font-bold text-gray-800 flex items-center space-x-1">
-                  <i data-lucide="store" class="w-3.5 h-3.5 text-blue-600"></i>
+            <div class="store-card">
+              <div class="store-card__info">
+                <span class="store-card__name">
+                  <i data-lucide="store" class="icon" style="width:14px;height:14px;color:var(--color-primary-text);"></i>
                   <span>${escapeHtml(product.store)}</span>
                 </span>
-                <span class="text-[10px] text-gray-400 flex items-center space-x-1">
-                  <i data-lucide="map-pin" class="w-3 h-3 text-red-500"></i>
+                <span class="store-card__city">
+                  <i data-lucide="map-pin" class="icon" style="width:12px;height:12px;color:var(--color-pink-text);"></i>
                   <span>Located in ${escapeHtml(product.storeCity)}</span>
                 </span>
               </div>
-              <span class="bg-white px-2 py-1 rounded-lg text-[10px] font-bold text-amber-500 border border-amber-100 flex items-center space-x-0.5">
-                <i data-lucide="star" class="w-3 h-3 fill-current inline"></i>
+              <span class="store-card__rating">
+                <i data-lucide="star" class="icon" style="width:12px;height:12px;"></i>
                 <span>${product.storeRating}</span>
               </span>
             </div>
 
-            <div class="flex space-x-3 pt-2">
-              <button data-action="buy-now" data-id="${product.id}" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs py-3 rounded-xl transition">
-                Buy Now
-              </button>
-              <button data-action="modal-add-to-cart" data-id="${product.id}" class="flex-1 bg-[#0B57D0] hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl transition shadow-lg shadow-[#0B57D0]/20">
-                Add to Cart
-              </button>
+            <div class="modal__actions">
+              <button data-action="buy-now" data-id="${product.id}" class="btn-dark-flex">Buy Now</button>
+              <button data-action="modal-add-to-cart" data-id="${product.id}" class="btn-primary-flex">Add to Cart</button>
             </div>
 
           </div>
@@ -1079,66 +992,66 @@ function renderProductModal() {
       </div>
     </div>
   `;
-}
+}
 
 function renderFooter() {
   return `
-    <footer class="mt-20 border-t border-gray-100 bg-white">
-      <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div class="space-y-4">
-          <div class="flex items-center space-x-2">
-            <span class="w-8 h-8 bg-[#0B57D0] rounded-lg inline-block flex items-center justify-center text-white font-bold text-sm">P</span>
-            <span class="font-extrabold tracking-tight text-gray-900">SISTECH EXPORTS</span>
+    <footer class="footer">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <div class="footer__logo">
+            <span class="footer__logo-icon">S</span>
+            <span class="footer__logo-text">SISTECH EXPORTS</span>
           </div>
-          <p class="text-[12px] text-gray-400 leading-normal">
+          <p class="footer__desc">
             A luxury high-fidelity responsive mockup storefront. Designed gracefully to match premium Indonesian electronics, beauty, and beverages marketplace benchmarks.
           </p>
         </div>
 
         <div>
-          <h5 class="text-[12px] font-bold text-gray-900 uppercase tracking-wider mb-4">Store Departments</h5>
-          <ul class="space-y-2 text-[12px] text-gray-400 font-semibold">
-            <li><button data-action="select-category" data-category="Electronics" class="hover:text-[#0B57D0] transition">Xiaomi &amp; Samsung Gadgets</button></li>
-            <li><button data-action="select-category" data-category="Beauty" class="hover:text-[#0B57D0] transition">Wardah Skincare Serum</button></li>
-            <li><button data-action="select-category" data-category="Beverages" class="hover:text-[#0B57D0] transition">Sosro Fresh Jasmine Teas</button></li>
-            <li><button data-action="select-category" data-category="Home Appliances" class="hover:text-[#0B57D0] transition">Philips Home Appliances</button></li>
-          </ul>
+          <h5 class="footer__col-title">Store Departments</h5>
+          <div class="footer__links">
+            <button data-action="select-category" data-category="Electronics">Xiaomi &amp; Samsung Gadgets</button>
+            <button data-action="select-category" data-category="Beauty">Wardah Skincare Serum</button>
+            <button data-action="select-category" data-category="Beverages">Sosro Fresh Jasmine Teas</button>
+            <button data-action="select-category" data-category="Home Appliances">Philips Home Appliances</button>
+          </div>
         </div>
 
         <div>
-          <h5 class="text-[12px] font-bold text-gray-900 uppercase tracking-wider mb-4">Customer Care</h5>
-          <ul class="space-y-2 text-[12px] text-gray-400 font-semibold">
-            <li><a href="#" class="hover:text-[#0B57D0] transition">FAQ &amp; Help Center</a></li>
-            <li><a href="#" class="hover:text-[#0B57D0] transition">Shipping &amp; Delivery Information</a></li>
-            <li><a href="#" class="hover:text-[#0B57D0] transition">Returns &amp; Exchanges Policy</a></li>
-            <li><a href="#" class="hover:text-[#0B57D0] transition">Track Your Order Status</a></li>
-          </ul>
+          <h5 class="footer__col-title">Customer Care</h5>
+          <div class="footer__links">
+            <a href="#">FAQ &amp; Help Center</a>
+            <a href="#">Shipping &amp; Delivery Information</a>
+            <a href="#">Returns &amp; Exchanges Policy</a>
+            <a href="#">Track Your Order Status</a>
+          </div>
         </div>
 
         <div>
-          <h5 class="text-[12px] font-bold text-gray-900 uppercase tracking-wider mb-4">System Context</h5>
-          <p class="text-[11.5px] text-gray-400 leading-relaxed">
+          <h5 class="footer__col-title">System Context</h5>
+          <p class="footer__context">
             Indonesian Rupiah localization enabled. Live dataset mapped from API payload dynamically with robust fallback catalog setups.
           </p>
         </div>
       </div>
 
-      <div class="border-t border-gray-50 py-6 text-center text-xs text-gray-400 font-semibold">
+      <div class="footer__bottom">
         © 2026 Sistech Ecommerce Platform. Built with Responsiveness &amp; Pride.
       </div>
     </footer>
   `;
-}
+}
 
 function render() {
   const app = document.getElementById('app');
   app.innerHTML = `
     ${renderTopBanner()}
     ${renderNavbar()}
-    <main class="max-w-7xl mx-auto px-6 py-8">
+    <main style="max-width:1280px;margin:0 auto;padding:32px 24px;">
       ${renderHero()}
       ${renderCategories()}
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div class="content-grid">
         ${renderSidebar()}
         ${renderProductGrid()}
       </div>
@@ -1149,14 +1062,11 @@ function render() {
     ${renderFooter()}
   `;
 
-  // Replace <i data-lucide="..."> tags with actual SVG icons
   if (window.lucide) {
     window.lucide.createIcons();
   }
 }
 
-// Wrapper that preserves focus + text-cursor position on inputs across re-renders
-// (needed because we fully re-render the DOM on every state change, like typing in search box)
 function renderWithFocusPreserved() {
   const active = document.activeElement;
   const activeId = active && active.id ? active.id : null;
@@ -1170,11 +1080,11 @@ function renderWithFocusPreserved() {
     if (el) {
       el.focus();
       if (selStart !== null && el.setSelectionRange) {
-        try { el.setSelectionRange(selStart, selEnd); } catch (e) { /* no-op for non-text inputs */ }
+        try { el.setSelectionRange(selStart, selEnd); } catch (e) {}
       }
     }
   }
-}
+}
 
 function initEventListeners() {
   const app = document.getElementById('app');
@@ -1335,7 +1245,6 @@ function initEventListeners() {
     }
   });
 }
-
 
 function init() {
   initEventListeners();
