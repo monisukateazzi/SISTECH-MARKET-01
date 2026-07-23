@@ -298,11 +298,7 @@ function completeOrder() {
   state.checkoutStep = 'cart';
   state.isCartOpen = false;
   state.appliedDiscount = 0;
-}
-
-// ==========================================================================
-// RENDER: TOP BANNER
-// ==========================================================================
+}
 
 function renderTopBanner() {
   return `
