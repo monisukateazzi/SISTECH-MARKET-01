@@ -199,10 +199,7 @@ async function fetchApiProducts() {
     renderWithFocusPreserved();
   }
 }
-
-// ==========================================================================
-// DERIVED / COMPUTED DATA
-// ==========================================================================
+
 
 function getProcessedProducts() {
   return state.products.filter(product => {
