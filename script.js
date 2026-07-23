@@ -1001,11 +1001,8 @@ function renderFooter() {
         <div class="footer__brand">
           <div class="footer__logo">
             <span class="footer__logo-icon">S</span>
-            <span class="footer__logo-text">SISTECH EXPORTS</span>
+            <span class="footer__logo-text">SISTECH MART</span>
           </div>
-          <p class="footer__desc">
-            A luxury high-fidelity responsive mockup storefront. Designed gracefully to match premium Indonesian electronics, beauty, and beverages marketplace benchmarks.
-          </p>
         </div>
 
         <div>
