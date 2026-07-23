@@ -1132,11 +1132,7 @@ function renderFooter() {
       </div>
     </footer>
   `;
-}
-
-// ==========================================================================
-// MASTER RENDER
-// ==========================================================================
+}
 
 function render() {
   const app = document.getElementById('app');
