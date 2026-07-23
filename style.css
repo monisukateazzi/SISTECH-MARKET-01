@@ -1,13 +1,11 @@
-/* dipakai di categories bar biar scrollbar-nya hilang */
-.scrollbar-none::-webkit-scrollbar {
+.scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
-/* dipakai buat batasi baris teks judul produk & nama di cart/wishlist */
+
 .line-clamp-1 {
   overflow: hidden;
   display: -webkit-box;
@@ -21,7 +19,6 @@
   -webkit-line-clamp: 2;
 }
 
-/* lucide icon default biar konsisten ukurannya kalau class w-*/h-* Tailwind non-standar (mis. w-5.5) gak ke-resolve */
 [data-lucide] {
   display: inline-block;
   vertical-align: middle;
