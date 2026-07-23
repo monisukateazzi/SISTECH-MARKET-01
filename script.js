@@ -1028,16 +1028,8 @@ function renderFooter() {
           </div>
         </div>
 
-        <div>
-          <h5 class="footer__col-title">System Context</h5>
-          <p class="footer__context">
-            Indonesian Rupiah localization enabled. Live dataset mapped from API payload dynamically with robust fallback catalog setups.
-          </p>
-        </div>
-      </div>
-
       <div class="footer__bottom">
-        © 2026 Sistech Ecommerce Platform. Built with Responsiveness &amp; Pride.
+        © 2026 Sistech Ecommerce Platform.
       </div>
     </footer>
   `;
