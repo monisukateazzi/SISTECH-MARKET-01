@@ -234,10 +234,7 @@ function getCartTotals() {
 function findProductById(id) {
   return state.products.find(p => String(p.id) === String(id));
 }
-
-// ==========================================================================
-// CART / WISHLIST OPERATIONS
-// ==========================================================================
+
 
 function handleAddToCart(product, quantity = 1) {
   const existingItem = state.cart.find(item => item.id === product.id);
